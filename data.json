@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Warden",
+    "species": "Canis lupus",
+    "breed": "Shih Tzu",
+    "age": 3,
+    "adopted": "false"
+  },
+  {
+    "id": 2,
+    "name": "Ploof",
+    "species": "Canis lupus",
+    "breed": "Poodle",
+    "age": 1,
+    "adopted": "false"
+  },
+  {
+    "id": 3,
+    "name": "Harry",
+    "species": "Canis lupus",
+    "breed": "Beagle",
+    "age": 2,
+    "adopted": "true"
+  },
+  {
+    "id": 4,
+    "name": "Cocoa",
+    "species": "Canis lupus",
+    "breed": "Daschund",
+    "age": 1,
+    "adopted": "true"
+  },
+  {
+    "id": 5,
+    "name": "Finn",
+    "species": "Canis lupus",
+    "breed": "Labrador",
+    "age": 4,
+    "adopted": "false"
+  }
+]

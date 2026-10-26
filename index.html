@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pet Adoption System</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 30px auto;
+            padding: 0 20px;
+            color: #715099;
+        }
+        .container{
+            padding: 20px 40px;
+            width: 800px;
+            height: auto;
+            margin: auto;
+            margin-top: 100px;
+            border: 2px solid #715099;
+        }
+        input {
+            padding: 8px 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            font-size: 14px;
+            width: 15%;
+        }
+        input:focus{
+            outline: none;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: white;
+            color:#715099;
+            border: 1px solid #715099;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+            color: green;
+        }
+        #errorMessage {
+            margin-top: 10px;
+            font-weight: bold;
+            color: red;
+        }
+        table{
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td{
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th{
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        hr {
+            border: none;               
+            border-top: 1px solid #715099;
+            padding: 10px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pet Adoption System</h1>
+        <div id="message"></div>
+        <div id="errorMessage"></div>
+        <hr>
+
+        <h2>Add Pet</h2>
+        <input type="text" id="petName" placeholder="Name">
+        <input type="text" id="petSpecies" placeholder="Species">
+        <input type="text" id="petBreed" placeholder="Breed">
+        <input type="number" id="petAge" placeholder="Age">
+
+        <button onclick="addPet()">Add Pet</button>
+        <hr>
+
+        <h2>Pets</h2>
+        <button onclick="loadPets()">See All Pets</button>
+        <button onclick="loadPetsFiltered(1)">See Available Pets</button>
+        <button onclick="loadPetsFiltered(2)">See Adopted Pets</button>
+
+        <br><br>
+        <input type="number" id="petSearchId" placeholder="Enter ID">
+        <button onclick="searchPet()">Search</button>
+        
+        <table id="petTable">
+            <thead>
+                <tr>
+                    <th style="width:10%;">ID</th>
+                    <th style="width:15%;">Name</th>
+                    <th style="width:15%;">Species</th>
+                    <th style="width:15%;">Breed</th>
+                    <th style="width:10%;">Age</th>
+                    <th style="width:10%;">Adopted</th>
+                    <th style="width:15%;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableContent"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadPets() {
+            try {
+                const response = await fetch("/api/pets");
+                const pets = await response.json();
+                
+                const tableContent = document.getElementById("tableContent");
+                tableContent.innerHTML = "";
+
+                pets.forEach(pet => {
+                    tableContent.innerHTML += `
+                        <tr>
+                            <td>${pet.id}</td>
+                            <td>${pet.name}</td>
+                            <td>${pet.species}</td>
+                            <td>${pet.breed}</td>
+                            <td>${pet.age}</td>
+                            <td>${pet.adopted == "true" ? "Yes" : "No"}</td>
+                            <td><button onclick="deletePet(${pet.id})">Delete</button> </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error("Error loading pets:", error);
+            }
+        }
+
+        async function loadPetsFiltered(action) {
+            try {
+                const response = await fetch("/api/pets");
+                const pets = await response.json();
+                
+                const tableContent = document.getElementById("tableContent");
+                tableContent.innerHTML = "";
+
+                const filter = action == 1 ? "false" : "true";
+
+                pets.forEach(pet => {
+                    if(pet.adopted == filter){
+                        tableContent.innerHTML += `
+                            <tr>
+                                <td>${pet.id}</td>
+                                <td>${pet.name}</td>
+                                <td>${pet.species}</td>
+                                <td>${pet.breed}</td>
+                                <td>${pet.age}</td>
+                                <td>${pet.adopted == "true" ? "Yes" : "No"}</td>
+                                <td><button onclick="deletePet(${pet.id})">Delete</button> </td>
+                            </tr>
+                        `;
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error loading pets:", error);
+            }
+        }
+
+        async function addPet() {
+            const nameInput = document.getElementById("petName");
+            const speciesInput = document.getElementById("petSpecies");
+            const breedInput = document.getElementById("petBreed");
+            const ageInput = document.getElementById("petAge");
+
+            const messageDiv = document.getElementById("message");
+            const errorMessageDiv = document.getElementById("errorMessage");
+
+            messageDiv.innerText = "";
+            errorMessageDiv.innerText = "";
+
+            const payload = {
+                name: nameInput.value,
+                species: speciesInput.value,
+                breed: breedInput.value,
+                age: ageInput.value
+            };
+
+            try {
+                const response = await fetch("/api/pets", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageDiv.innerText = "Pet added successfully!";
+                    
+                    nameInput.value = "";
+                    speciesInput.value = "";
+                    breedInput.value = "";
+                    ageInput.value = "";
+
+                    loadPets();
+                } else {
+                    errorMessageDiv.innerText = result.message || "Failed to add pet.";
+                }
+            } catch (error) {
+                console.error("Error adding pet:", error);
+                errorMessageDiv.innerText = "An error occurred while communicating with the server.";
+            }
+        }
+
+        async function searchPet() {
+            const errorMessageDiv = document.getElementById("errorMessage");
+
+            const id = document.getElementById("petSearchId").value;
+            if(!id) return;
+
+            const response = await fetch(`api/pets/${id}`);
+            const pet = await response.json();
+
+            if(response.status === 404){
+                errorMessageDiv.innerText = "Pet not found.";
+                return;
+            }
+
+            const tableContent = document.getElementById("tableContent");
+            tableContent.innerHTML = "";
+
+            tableContent.innerHTML += `
+                <tr>
+                    <td>${pet.id}</td>
+                    <td>${pet.name}</td>
+                    <td>${pet.species}</td>
+                    <td>${pet.breed}</td>
+                    <td>${pet.age}</td>
+                    <td>${pet.adopted == "true" ? "Yes" : "No"}</td>
+                    <td> <button onclick="deletePet(${pet.id})">Delete</button> </td>
+                <tr>
+            `;
+        }
+
+        async function deletePet(id) {
+            const errorMessageDiv = document.getElementById("errorMessage");
+
+            const res = await fetch(`api/pets/${id}`);
+            const pet = await res.json();
+
+            if(pet.adopted == "true"){
+                errorMessageDiv.innerText = "Cannot delete an adopted pet.";
+                return;
+            }
+
+            if (!confirm("Delete this pet?")) {
+                return;
+            }
+
+            const response = await fetch(
+                `/api/pets/${encodeURIComponent(id)}`,
+                {
+                    method: "DELETE"
+                }
+            );
+            const result = await response.json();
+
+            alert(result.message);
+
+            if (response.ok) {
+                loadPets();
+            }
+        }
+
+        loadPets();
+    </script>
+</body>
+</html>
